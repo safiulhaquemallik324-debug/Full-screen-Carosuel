@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Carousel</title>
+
+  <!-- Poppins font — clean and friendly -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="style.css">
+
+  <!-- jQuery -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+
+ 
+</head>
+<body>
+
+  <!-- ════════════════════════════════════════
+       CAROUSEL — one big fullscreen container
+       Everything inside is absolutely placed
+  ════════════════════════════════════════ -->
+  <div class="carousel" id="carousel">
+
+    <!-- SLIDES WRAPPER: all 5 slides sit side by side inside this -->
+    <div class="slides-wrapper" id="slidesWrapper">
+
+      <!-- SLIDE 1 -->
+      <div class="slide">
+        <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1400&q=85" alt="Mountains"/>
+        <div class="caption">
+          <span class="caption-tag">&#9679; Switzerland</span>
+          <h2 class="caption-title">Swiss Alps</h2>
+          <p class="caption-desc">Where silence meets the sky — jagged peaks wrapped in eternal snow above the clouds.</p>
+        </div>
+      </div>
+
+      <!-- SLIDE 2 -->
+      <div class="slide">
+        <img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1400&q=85" alt="Beach"/>
+        <div class="caption">
+          <span class="caption-tag">&#9679; Maldives</span>
+          <h2 class="caption-title">Tropical Shore</h2>
+          <p class="caption-desc">Crystal-clear waters meet powdery white sand in the most serene corner of the Indian Ocean.</p>
+        </div>
+      </div>
+
+      <!-- SLIDE 3 -->
+      <div class="slide">
+        <img src="https://images.unsplash.com/photo-1501854140801-50d01698950b?w=1400&q=85" alt="Forest"/>
+        <div class="caption">
+          <span class="caption-tag">&#9679; Pacific Northwest</span>
+          <h2 class="caption-title">Deep Forest</h2>
+          <p class="caption-desc">Ancient trees draped in morning mist — a world untouched by time, green and endless.</p>
+        </div>
+      </div>
+
+      <!-- SLIDE 4 -->
+      <div class="slide">
+        <img src="https://images.unsplash.com/photo-1518623489648-a173ef7824f3?w=1400&q=85" alt="Desert"/>
+        <div class="caption">
+          <span class="caption-tag">&#9679; Sahara, Africa</span>
+          <h2 class="caption-title">Golden Dunes</h2>
+          <p class="caption-desc">Endless waves of sand sculpted by the wind under a blazing afternoon sun.</p>
+        </div>
+      </div>
+
+      <!-- SLIDE 5 -->
+      <div class="slide">
+        <img src="https://images.unsplash.com/photo-1439405326854-014607f694d7?w=1400&q=85" alt="Ocean"/>
+        <div class="caption">
+          <span class="caption-tag">&#9679; Atlantic Coast</span>
+          <h2 class="caption-title">Open Horizon</h2>
+          <p class="caption-desc">The ocean stretches endlessly into a fiery sunset — calm, vast and breathtaking.</p>
+        </div>
+      </div>
+
+    </div>
+    <!-- end slides wrapper -->
+
+    <!-- ── COUNTER (absolute — top left) ── -->
+    <div class="slide-count" id="slideCount">1 / 5</div>
+
+    <!-- ── PREV ARROW (absolute — left middle) ── -->
+    <button class="arrow arrow-prev" id="prevBtn">
+      <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+
+    <!-- ── NEXT ARROW (absolute — right middle) ── -->
+    <button class="arrow arrow-next" id="nextBtn">
+      <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+
+    <!-- ── DOTS (absolute — bottom center) ── -->
+    <div class="dots" id="dots"></div>
+
+    <!-- ── THUMBNAILS (absolute — bottom left) ── -->
+    <div class="thumbs" id="thumbs"></div>
+
+    <!-- ── PAUSE BUTTON (absolute — bottom right) ── -->
+    <button class="pause-btn" id="pauseBtn">
+      <svg id="pauseIcon" viewBox="0 0 24 24">
+        <!-- Two pause bars -->
+        <rect x="5"  y="3" width="4" height="18" rx="1"/>
+        <rect x="15" y="3" width="4" height="18" rx="1"/>
+      </svg>
+      <span id="pauseLabel">Pause</span>
+    </button>
+
+    <!-- ── PROGRESS BAR (absolute — very bottom) ── -->
+    <div class="progress-bar">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+
+  </div>
+  <!-- end .carousel -->
+
+
+  <!-- ════════════════════════════════════════
+       JQUERY — all carousel logic
+  ════════════════════════════════════════ -->
+  <script>
+
+  // Wait for the full page to load before running anything
+  $(document).ready(function () {
+
+
+    /* ─────────────────────────────────────
+       1. VARIABLES
+    ───────────────────────────────────── */
+
+    var current   = 0;                   // current slide index (0 = first)
+    var total     = $('.slide').length;  // total number of slides → 5
+    var paused    = false;               // autoplay paused? starts NO
+    var autoDelay = 4500;                // ms between slides (4.5 sec)
+    var autoTimer = null;                // holds setTimeout reference
+
+
+    /* ─────────────────────────────────────
+       2. BUILD DOTS & THUMBNAILS
+       One dot + one thumb per slide
+    ───────────────────────────────────── */
+
+    $('.slide').each(function (index) {
+
+      // ── DOT ──
+      var $dot = $('<div>').addClass('dot');
+      if (index === 0) $dot.addClass('active');  // first dot is active
+      $dot.on('click', function () { goToSlide(index); });
+      $('#dots').append($dot);
+
+      // ── THUMBNAIL ──
+      var imgSrc = $(this).find('img').attr('src');
+      var $thumb = $('<div>').addClass('thumb');
+      if (index === 0) $thumb.addClass('active'); // first thumb is active
+      $thumb.append( $('<img>').attr({ src: imgSrc, alt: 'thumb' }) );
+      $thumb.on('click', function () { goToSlide(index); });
+      $('#thumbs').append($thumb);
+
+    });
+
+
+    /* ─────────────────────────────────────
+       3. goToSlide(n)  — MAIN FUNCTION
+       Call this to switch to any slide
+    ───────────────────────────────────── */
+
+    function goToSlide(n) {
+
+      // Wrap around: after last → first, before first → last
+      current = (n + total) % total;
+
+      // Shift the slides-wrapper left to reveal the current slide
+      $('#slidesWrapper').css('transform', 'translateX(-' + (current * 100) + '%)');
+
+      // Update the "1 / 5" counter badge
+      $('#slideCount').text( (current + 1) + ' / ' + total );
+
+      // Toggle .active on slides (used to animate caption in/out)
+      $('.slide').removeClass('active');
+      $('.slide').eq(current).addClass('active');
+
+      // Update dots — remove active from all, set on current
+      $('.dot').removeClass('active');
+      $('.dot').eq(current).addClass('active');
+
+      // Update thumbnails — same pattern
+      $('.thumb').removeClass('active');
+      $('.thumb').eq(current).addClass('active');
+
+      // Restart autoplay bar (unless paused)
+      if (!paused) startProgress();
+    }
+
+
+    /* ─────────────────────────────────────
+       4. ARROW BUTTONS
+    ───────────────────────────────────── */
+
+    $('#prevBtn').on('click', function () { goToSlide(current - 1); });
+    $('#nextBtn').on('click', function () { goToSlide(current + 1); });
+
+
+    /* ─────────────────────────────────────
+       5. KEYBOARD — left / right arrows
+    ───────────────────────────────────── */
+
+    $(document).on('keydown', function (e) {
+      if (e.key === 'ArrowLeft')  goToSlide(current - 1);
+      if (e.key === 'ArrowRight') goToSlide(current + 1);
+    });
+
+
+    /* ─────────────────────────────────────
+       6. SWIPE — touch / mobile
+    ───────────────────────────────────── */
+
+    var touchStartX = 0;
+
+    $('#carousel').on('touchstart', function (e) {
+      touchStartX = e.originalEvent.touches[0].clientX;
+    });
+
+    $('#carousel').on('touchend', function (e) {
+      var diff = touchStartX - e.originalEvent.changedTouches[0].clientX;
+      if (Math.abs(diff) > 50) {
+        diff > 0 ? goToSlide(current + 1) : goToSlide(current - 1);
+      }
+    });
+
+
+    /* ─────────────────────────────────────
+       7. PROGRESS BAR + AUTOPLAY
+       Amber bar fills over 4.5s then next slide
+    ───────────────────────────────────── */
+
+    function startProgress() {
+      clearTimeout(autoTimer);
+      $('#progressFill').stop(true).css({ width: '0%', transition: 'none' });
+
+      // Small delay so CSS reset applies, then animate to 100%
+      setTimeout(function () {
+        $('#progressFill').css({
+          transition : 'width ' + autoDelay + 'ms linear',
+          width      : '100%'
+        });
+      }, 20);
+
+      // Auto-advance after autoDelay ms
+      autoTimer = setTimeout(function () {
+        goToSlide(current + 1);
+      }, autoDelay);
+    }
+
+
+    /* ─────────────────────────────────────
+       8. PAUSE / PLAY BUTTON
+    ───────────────────────────────────── */
+
+    $('#pauseBtn').on('click', function () {
+
+      paused = !paused;  // toggle true / false
+
+      if (paused) {
+        clearTimeout(autoTimer);          // stop the auto timer
+        $('#progressFill').stop(true);    // freeze the progress bar
+        // Swap to Play triangle icon
+        $('#pauseIcon').html('<polygon points="5 3 19 12 5 21"/>');
+        $('#pauseLabel').text('Play');
+      } else {
+        startProgress();                  // restart bar and timer
+        // Swap back to Pause bars icon
+        $('#pauseIcon').html('<rect x="5" y="3" width="4" height="18" rx="1"/><rect x="15" y="3" width="4" height="18" rx="1"/>');
+        $('#pauseLabel').text('Pause');
+      }
+
+    });
+
+
+    /* ─────────────────────────────────────
+       9. START — kick off on page load
+    ───────────────────────────────────── */
+
+    // Mark the first slide as active so its caption is visible on load
+    $('.slide').eq(0).addClass('active');
+
+    startProgress();
+
+
+  }); // end $(document).ready
+
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,295 @@
+
+
+/* ── RESET ── */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* ── BODY fills the entire screen ── */
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;             /* no scrollbars */
+  font-family: 'Poppins', sans-serif;
+  background: #1a1a2e;         /* deep navy — shows while images load */
+}
+
+/* ════════════════════════════════════════
+   CAROUSEL  — fills 100% of the screen
+════════════════════════════════════════ */
+.carousel {
+  position: relative;           /* parent for all absolute children */
+  width: 100vw;                 /* full viewport width */
+  height: 100vh;                /* full viewport height */
+  overflow: hidden;
+}
+
+/* ── SLIDES WRAPPER — holds all slides side by side ── */
+.slides-wrapper {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.55s ease-in-out;   /* smooth left/right slide */
+}
+
+/* ── SINGLE SLIDE ── */
+.slide {
+  min-width: 100vw;     /* each slide = full screen width */
+  height: 100vh;        /* each slide = full screen height */
+  position: relative;
+}
+
+/* ── SLIDE IMAGE covers the full screen ── */
+.slide img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;    /* fills without stretching */
+  display: block;
+}
+
+/* ── DARK GRADIENT OVERLAY — heavier at bottom for caption readability ── */
+.slide::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(0,0,0,0.72) 0%,
+    rgba(0,0,0,0.25) 45%,
+    rgba(0,0,0,0.08) 100%
+  );
+  pointer-events: none;
+}
+
+/* ── CAPTION — bottom left, over the image ── */
+.caption {
+  position: absolute;
+  bottom: 80px;               /* sits above dots/thumbs row */
+  left: 0;
+  right: 0;
+  padding: 0 52px 0 44px;
+  z-index: 10;
+  pointer-events: none;
+
+  /* Animate in when slide becomes active */
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity 0.55s ease 0.2s, transform 0.55s ease 0.2s;
+}
+
+/* Caption shows when its parent slide has .active class */
+.slide.active .caption {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Small location tag above the title */
+.caption-tag {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #e8a838;             /* amber — matches progress bar */
+  margin-bottom: 8px;
+}
+
+/* Big place name */
+.caption-title {
+  font-size: clamp(2rem, 5vw, 3.4rem);
+  font-weight: 600;
+  color: #ffffff;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  margin-bottom: 10px;
+  /* Subtle text shadow for readability on any photo */
+  text-shadow: 0 2px 20px rgba(0,0,0,0.5);
+}
+
+/* Short description line */
+.caption-desc {
+  font-size: clamp(0.78rem, 1.5vw, 0.92rem);
+  font-weight: 300;
+  color: rgba(255,255,255,0.82);
+  max-width: 480px;
+  line-height: 1.6;
+  text-shadow: 0 1px 10px rgba(0,0,0,0.4);
+}
+
+/* ════════════════════════════════════════
+   ALL CONTROLS — absolute positioned
+   They float ON TOP of the image
+════════════════════════════════════════ */
+
+/* ── SLIDE COUNTER  e.g. "2 / 5"  — top left ── */
+.slide-count {
+  position: absolute;
+  top: 22px;
+  left: 28px;
+  z-index: 10;
+  color: #ffffff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  background: rgba(0, 0, 0, 0.4);
+  padding: 5px 14px;
+  border-radius: 20px;
+}
+
+/* ── LEFT ARROW — absolute, vertically centred ── */
+.arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);     /* vertically center */
+  z-index: 10;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.6);
+  background: rgba(0, 0, 0, 0.35);
+  color: #ffffff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, border-color 0.2s, transform 0.2s;
+}
+
+.arrow:hover {
+  background: rgba(255,255,255,0.2);
+  border-color: #ffffff;
+  transform: translateY(-50%) scale(1.08);
+}
+
+.arrow svg {
+  width: 22px;
+  height: 22px;
+  stroke: #ffffff;
+  fill: none;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.arrow-prev { left: 24px; }
+.arrow-next { right: 24px; }
+
+/* ── DOTS — bottom center ── */
+.dots {
+  position: absolute;
+  bottom: 60px;               /* above the progress bar */
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  display: flex;
+  gap: 9px;
+  align-items: center;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.45);
+  cursor: pointer;
+  transition: background 0.3s, width 0.3s;
+}
+
+/* active dot = white pill */
+.dot.active {
+  background: #ffffff;
+  width: 26px;
+}
+
+/* ── PROGRESS BAR — very bottom edge ── */
+.progress-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: rgba(255,255,255,0.15);
+  z-index: 10;
+}
+
+.progress-fill {
+  height: 100%;
+  width: 0%;
+  background: #e8a838;     /* warm amber — simple and warm */
+}
+
+/* ── PAUSE/PLAY BUTTON — bottom right corner ── */
+.pause-btn {
+  position: absolute;
+  bottom: 18px;
+  right: 24px;
+  z-index: 10;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1.5px solid rgba(255,255,255,0.4);
+  border-radius: 20px;
+  color: #ffffff;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 7px 16px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.pause-btn:hover {
+  background: rgba(255,255,255,0.15);
+  border-color: #ffffff;
+}
+
+.pause-btn svg {
+  width: 12px;
+  height: 12px;
+  fill: #ffffff;
+  display: block;
+  flex-shrink: 0;
+}
+
+/* ── THUMBNAIL STRIP — bottom left ── */
+.thumbs {
+  position: absolute;
+  bottom: 14px;
+  left: 24px;
+  z-index: 10;
+  display: flex;
+  gap: 8px;
+}
+
+.thumb {
+  width: 58px;
+  height: 38px;
+  border-radius: 5px;
+  overflow: hidden;
+  cursor: pointer;
+  opacity: 0.45;
+  border: 2px solid transparent;
+  transition: opacity 0.3s, border-color 0.3s, transform 0.3s;
+}
+
+.thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.thumb.active {
+  opacity: 1;
+  border-color: #e8a838;
+  transform: translateY(-3px);
+}
+
+/* ── Mobile tweaks ── */
+@media (max-width: 500px) {
+  .thumbs    { display: none; }
+  .arrow     { width: 40px; height: 40px; }
+  .arrow-prev { left: 12px; }
+  .arrow-next { right: 12px; }
+}
+
